@@ -188,10 +188,76 @@ function delayedExternalLineCharts() {
     }
 }
 
+function delayedExternalCompositeCharts() {
+    queue()
+        .defer(d3.json, "data/transactions.json")
+        .await(makeGraphs);
+        
+    function makeGraphs(error, tdata) {
+        var ndx = crossfilter(tdata);
+        var parseDate = d3.timeParse("%d/%m/%Y");
+        
+        tdata.forEach(function(d){
+            d.date = parseDate(d.date);
+        });
+        
+        var date_dim = ndx.dimension(dc.pluck('date'));
+        var minDate = date_dim.bottom(1)[0].date;
+        var maxDate = date_dim.top(1)[0].date;
+        
+        var tomSpendByMonth = date_dim.group().reduceSum(function (d) {
+                if (d.name === 'Tom') {
+                    return +d.spend;
+                } else {
+                    return 0;
+                }
+            });
+        var bobSpendByMonth = date_dim.group().reduceSum(function (d) {
+            if (d.name === 'Bob') {
+                return +d.spend;
+            } else {
+                return 0;
+            }
+        });
+        var aliceSpendByMonth = date_dim.group().reduceSum(function (d) {
+            if (d.name === 'Alice') {
+                return +d.spend;
+            } else {
+                return 0;
+            }
+        });
+        var compositeChart = dc.compositeChart('#composite-line-chart');
+        compositeChart
+            .width(1000)
+            .height(300)
+            .dimension(date_dim)
+            .x(d3.scaleTime().domain([minDate, maxDate]))
+            .yAxisLabel("Spend")
+            .legend(dc.legend().x(80).y(20).itemHeight(13).gap(5))
+            .renderHorizontalGridLines(true)
+            .compose([
+                dc.lineChart(compositeChart)
+                    .colors('green')
+                    .group(tomSpendByMonth, 'Tom'),
+                dc.lineChart(compositeChart)
+                    .colors('red')
+                    .group(bobSpendByMonth, 'Bob'),
+                dc.lineChart(compositeChart)
+                    .colors('blue')
+                    .group(aliceSpendByMonth, 'Alice')
+            ])
+            .brushOn(false)
+            .render();
+            
+        dc.renderAll();
+    }
+}
+
 $(document).ready(function() {
     transDataBasic();
     transDataSeparated();
     delayedExternalCharts();
     delayedExternalPieCharts();
     delayedExternalLineCharts();
+    delayedExternalCompositeCharts();
 });
