@@ -299,6 +299,47 @@ function delayedExternalStackedChart() {
     }
 }
 
+function delayedExternalScatterChart() {
+    queue()
+        .defer(d3.json, "data/transactions.json")
+        .await(makeGraphs);
+        
+    function makeGraphs(error, tdata) {
+        var ndx = crossfilter(tdata);
+
+        var parseDate = d3.timeParse("%d/%m/%Y");
+        
+        tdata.forEach(function(d){
+            d.date = parseDate(d.date);
+        });
+        
+        var date_dim = ndx.dimension(function(d){
+            return d.date;
+        });
+        
+        var min_date = date_dim.bottom(1)[0].date;
+        var max_date = date_dim.top(1)[0].date;
+        
+        var spend_dim = ndx.dimension(function(d){
+            return [d.date, d.spend];
+        });
+        
+        var spend_group = spend_dim.group();
+        var spend_chart = dc.scatterPlot("#scatter-chart");
+        spend_chart
+            .width(768)
+            .height(480)
+            .x(d3.scaleTime().domain([min_date, max_date]))
+            .brushOn(false)
+            .symbolSize(8)
+            .clipPadding(10)
+            .yAxisLabel("Amount Spent")
+            .dimension(spend_dim)
+            .group(spend_group);
+            
+        dc.renderAll();
+    }
+}
 $(document).ready(function() {
     transDataBasic();
     transDataSeparated();
@@ -307,4 +348,5 @@ $(document).ready(function() {
     delayedExternalLineChart();
     delayedExternalCompositeChart();
     delayedExternalStackedChart();
+    delayedExternalScatterChart();
 });
