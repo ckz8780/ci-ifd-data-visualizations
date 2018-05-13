@@ -396,6 +396,34 @@ function delayedExternalMultiColorScatterChart() {
     }
 }
 
+function derivedData() {
+    queue()
+        .defer(d3.json, "data/transactions.json")
+        .await(makeGraphs);
+        
+    function makeGraphs(error, tdata) {
+        var ndx = crossfilter(tdata);
+
+        var size_dimension = ndx.dimension(function(d) {
+            if(d.spend > 200) {
+                return 'Big';
+            } else {
+                return 'Small';
+            }
+        });
+        
+        var size_group = size_dimension.group();
+        
+        dc.pieChart('#big-vs-small-trans-chart')
+            .height(150)
+            .radius(90)
+            .dimension(size_dimension)
+            .group(size_group);
+        
+        dc.renderAll();
+    }
+}
+
 $(document).ready(function() {
     transDataBasic();
     transDataSeparated();
@@ -406,4 +434,5 @@ $(document).ready(function() {
     delayedExternalStackedChart();
     delayedExternalScatterChart();
     delayedExternalMultiColorScatterChart();
+    derivedData();
 });
