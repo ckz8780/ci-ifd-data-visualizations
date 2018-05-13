@@ -342,6 +342,60 @@ function delayedExternalScatterChart() {
     }
 }
 
+function delayedExternalMultiColorScatterChart() {
+    queue()
+        .defer(d3.json, "data/transactions.json")
+        .await(makeGraphs);
+        
+    function makeGraphs(error, tdata) {
+        var ndx = crossfilter(tdata);
+
+        var parseDate = d3.timeParse("%d/%m/%Y");
+        
+        tdata.forEach(function(d){
+            d.date = parseDate(d.date);
+        });
+        
+        var date_dim = ndx.dimension(function(d){
+            return d.date;
+        });
+        
+        var tradeColors = d3.scaleOrdinal()
+            .domain(["Alice", "Tom", "Bob"])
+            .range(["red", "green", "blue"]);
+            
+        var minDate = date_dim.bottom(1)[0].date;
+        var maxDate = date_dim.top(1)[0].date;
+        
+        var spendDim = ndx.dimension(function(d){
+            return [d.date, d.spend, d];
+        });
+        
+        var spendGroup = spendDim.group();
+        var spend_chart = dc.scatterPlot("#multicolor-scatter-chart");
+        
+        spend_chart
+            .width(768)
+            .height(480)
+            .x(d3.scaleTime().domain([minDate, maxDate]))
+            .brushOn(false)
+            .symbolSize(8)
+            .clipPadding(10)
+            .yAxisLabel("Amount Spent")
+            .title(function (d) {
+                return d.key[2].name + " spent $" + d.key[2].spend + " in Store " + d.key[2].store;
+            })
+            .colorAccessor(function (d) {
+                return d.key[2].name;
+            })
+            .colors(tradeColors)
+            .dimension(spendDim)
+            .group(spendGroup);
+            
+        dc.renderAll();
+    }
+}
+
 $(document).ready(function() {
     transDataBasic();
     transDataSeparated();
@@ -351,4 +405,5 @@ $(document).ready(function() {
     delayedExternalCompositeChart();
     delayedExternalStackedChart();
     delayedExternalScatterChart();
+    delayedExternalMultiColorScatterChart();
 });
