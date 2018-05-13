@@ -88,7 +88,34 @@ function transDataSeparated() {
     dc.renderAll();
 }
 
+function delayedExternalCharts() {
+    queue()
+        .defer(d3.json, 'data/transactions.json')
+        .await(makeGraphs);
+        
+    function makeGraphs(error, tdata) {
+        var ndx = crossfilter(tdata);
+        var name_dim = ndx.dimension(dc.pluck('name'));
+        var total_spend_per_person = name_dim.group().reduceSum(dc.pluck('spend'));
+        
+        dc.barChart("#delayed-external-chart")
+            .width(300)
+            .height(150)
+            .margins({top: 10, right: 50, bottom: 30, left: 50})
+            .dimension(name_dim)
+            .group(total_spend_per_person)
+            .transitionDuration(500)
+            .x(d3.scaleOrdinal())
+            .xUnits(dc.units.ordinal)
+            .xAxisLabel("Person")
+            .yAxis().ticks(4);
+            
+        dc.renderAll();
+    }
+}
+
 $(document).ready(function() {
     transDataBasic();
     transDataSeparated();
+    delayedExternalCharts();
 });
