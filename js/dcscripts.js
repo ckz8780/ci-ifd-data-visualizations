@@ -424,6 +424,63 @@ function derivedData() {
     }
 }
 
+function customReduce() {
+    queue()
+        .defer(d3.json, "data/transactions.json")
+        .await(makeGraphs);
+        
+    function makeGraphs(error, tdata) {
+        
+        var ndx = crossfilter(tdata);
+        var name_dim = ndx.dimension(dc.pluck('name'));
+        
+        // var average_spend_by_person = name_dim.group().reduce(adder, remover, initializer)
+        var average_spend_by_person = name_dim.group().reduce(
+            
+            // Add a fact
+            function(p, v) {
+                p.count++;
+                p.total += v.spend;
+                p.average = p.total / p.count;
+                return p;
+            },
+            // Remove a fact
+            function(p, v) {
+                p.count--;
+                
+                if (p.count == 0) {
+                    p.total = 0;
+                    p.average = 0;
+                } else {
+                    p.total -= v.spend;
+                    p.average = p.total / p.count;
+                }
+                
+                return p;
+            },
+            // Initialize the Reducer
+            function() {
+                return {count: 0, total: 0, average: 0};
+            }
+        );
+        
+        var average_chart = dc.barChart('#custom-reduce');
+        average_chart
+            .width(500)
+            .height(300)
+            .dimension(name_dim)
+            .group(average_spend_by_person)
+            .valueAccessor(function(d) {
+                return d.value.average;
+            })
+            .x(d3.scaleOrdinal())
+            .xUnits(dc.units.ordinal);
+            
+        dc.renderAll();
+            
+    }
+}
+
 $(document).ready(function() {
     transDataBasic();
     transDataSeparated();
@@ -435,4 +492,5 @@ $(document).ready(function() {
     delayedExternalScatterChart();
     delayedExternalMultiColorScatterChart();
     derivedData();
+    customReduce();
 });
