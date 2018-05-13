@@ -88,7 +88,7 @@ function transDataSeparated() {
     dc.renderAll();
 }
 
-function delayedExternalCharts() {
+function delayedExternalChart() {
     queue()
         .defer(d3.json, 'data/transactions.json')
         .await(makeGraphs);
@@ -114,7 +114,7 @@ function delayedExternalCharts() {
     }
 }
 
-function delayedExternalPieCharts() {
+function delayedExternalPieChart() {
     queue()
         .defer(d3.json, 'data/transactions.json')
         .await(makePies);
@@ -155,7 +155,7 @@ function delayedExternalPieCharts() {
     }
 }
 
-function delayedExternalLineCharts() {
+function delayedExternalLineChart() {
     queue()
         .defer(d3.json, "data/transactions.json")
         .await(makeGraphs);
@@ -188,12 +188,13 @@ function delayedExternalLineCharts() {
     }
 }
 
-function delayedExternalCompositeCharts() {
+function delayedExternalCompositeChart() {
     queue()
         .defer(d3.json, "data/transactions.json")
         .await(makeGraphs);
         
     function makeGraphs(error, tdata) {
+        
         var ndx = crossfilter(tdata);
         var parseDate = d3.timeParse("%d/%m/%Y");
         
@@ -206,12 +207,13 @@ function delayedExternalCompositeCharts() {
         var maxDate = date_dim.top(1)[0].date;
         
         var tomSpendByMonth = date_dim.group().reduceSum(function (d) {
-                if (d.name === 'Tom') {
-                    return +d.spend;
-                } else {
-                    return 0;
-                }
-            });
+            if (d.name === 'Tom') {
+                return +d.spend;
+            } else {
+                return 0;
+            }
+        });
+        
         var bobSpendByMonth = date_dim.group().reduceSum(function (d) {
             if (d.name === 'Bob') {
                 return +d.spend;
@@ -219,6 +221,7 @@ function delayedExternalCompositeCharts() {
                 return 0;
             }
         });
+        
         var aliceSpendByMonth = date_dim.group().reduceSum(function (d) {
             if (d.name === 'Alice') {
                 return +d.spend;
@@ -226,6 +229,7 @@ function delayedExternalCompositeCharts() {
                 return 0;
             }
         });
+        
         var compositeChart = dc.compositeChart('#composite-line-chart');
         compositeChart
             .width(1000)
@@ -253,11 +257,54 @@ function delayedExternalCompositeCharts() {
     }
 }
 
+function delayedExternalStackedChart() {
+    queue()
+        .defer(d3.json, "data/transactions.json")
+        .await(makeGraphs);
+        
+    function makeGraphs(error, tdata) {
+        
+        var ndx = crossfilter(tdata);
+        var name_dim = ndx.dimension(dc.pluck('name'));
+        
+        var spendByNameStoreA = name_dim.group().reduceSum(function (d) {
+            if (d.store === 'A') {
+                return +d.spend;
+            } else {
+                return 0;
+            }
+        });
+            
+        var spendByNameStoreB = name_dim.group().reduceSum(function (d) {
+            if (d.store === 'B') {
+                return +d.spend;
+            } else {
+                return 0;
+            }
+        });
+        
+        var stackedChart = dc.barChart("#stacked-chart");
+        stackedChart
+            .width(500)
+            .height(500)
+            .dimension(name_dim)
+            .group(spendByNameStoreA, "Store A")
+            .stack(spendByNameStoreB, "Store B")
+            .x(d3.scaleOrdinal())
+            .xUnits(dc.units.ordinal)
+            .legend(dc.legend().x(420).y(0).itemHeight(15).gap(5));
+        stackedChart.margins().right = 100;
+            
+        dc.renderAll();
+    }
+}
+
 $(document).ready(function() {
     transDataBasic();
     transDataSeparated();
-    delayedExternalCharts();
-    delayedExternalPieCharts();
-    delayedExternalLineCharts();
-    delayedExternalCompositeCharts();
+    delayedExternalChart();
+    delayedExternalPieChart();
+    delayedExternalLineChart();
+    delayedExternalCompositeChart();
+    delayedExternalStackedChart();
 });
