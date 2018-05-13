@@ -3,3 +3,11 @@
 body, html {
     font-family: 'Roboto', sans-serif;
 }
+
+h3, div {
+    clear: both;
+}
+
+.indent {
+    margin-left: 50px;
+}

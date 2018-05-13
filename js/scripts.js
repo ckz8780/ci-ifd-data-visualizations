@@ -330,6 +330,7 @@ function createInteractiveChart() {
     });
 }
 
+// Create all examples
 $(document).ready(function() {
     createCircles();
     createBarChart();
