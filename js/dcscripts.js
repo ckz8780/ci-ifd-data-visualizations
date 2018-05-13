@@ -324,8 +324,9 @@ function delayedExternalScatterChart() {
             return [d.date, d.spend];
         });
         
-        var spend_group = spend_dim.group();
+        var spend_group = spend_dim.group().reduceSum(dc.pluck('spend'));
         var spend_chart = dc.scatterPlot("#scatter-chart");
+        
         spend_chart
             .width(768)
             .height(480)
@@ -340,6 +341,7 @@ function delayedExternalScatterChart() {
         dc.renderAll();
     }
 }
+
 $(document).ready(function() {
     transDataBasic();
     transDataSeparated();
