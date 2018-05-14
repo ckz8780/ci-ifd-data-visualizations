@@ -8,8 +8,8 @@ This repo demonstrates the basic usage of SVG and D3. This is part of the Intera
 - jQuery has been utilized to call all functions in sequence on document.ready()
 - IMPORTANT: This project uses D3 version 4 which changes some functionality significantly (see https://keithpblog.org/post/upgrading-d3-from-v3-to-v4/)
 
-Basic SVG usage: https://ckz8780.github.io/ifd-data-visualizations/svg.html
+Basic SVG usage: https://ckz8780.github.io/ci-ifd-data-visualizations/svg.html
 
-Basic D3 usage: https://ckz8780.github.io/ifd-data-visualizations/d3.html
+Basic D3 usage: https://ckz8780.github.io/ci-ifd-data-visualizations/d3.html
 
-Basic DC and Crossfilter usage: https://ckz8780.github.io/ifd-data-visualizations/dc.html
+Basic DC and Crossfilter usage: https://ckz8780.github.io/ci-ifd-data-visualizations/dc.html
